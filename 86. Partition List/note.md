@@ -1,4 +1,4 @@
-
+ref: https://hackmd.io/@sysprog/c-linked-list
 
 ```c
 ListNode *partition(ListNode *head, int x) {
