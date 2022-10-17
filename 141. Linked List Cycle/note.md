@@ -6,6 +6,8 @@ https://leetcode.com/problems/linked-list-cycle/discuss/44669/Fully-Explained!-w
 https://medium.com/@orionssl/%E6%8E%A2%E7%B4%A2-floyd-cycle-detection-algorithm-934cdd05beb9
 
 
+視覺化呈現: https://visualgo.net/en/cyclefinding
+
 ```java
 public class Solution { //java version
     public boolean hasCycle(ListNode head) {
