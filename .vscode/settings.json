@@ -6,6 +6,7 @@
     "vector": "c",
     "contains_duplicate.h": "c",
     "uthash.h": "c",
-    "stdbool.h": "c"
+    "stdbool.h": "c",
+    "valid_anagram.h": "c"
   }
 }
