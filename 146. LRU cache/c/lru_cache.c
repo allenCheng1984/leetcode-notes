@@ -1,95 +1,147 @@
 #include <stdbool.h>
 #include <stdlib.h>
+#include "../../libs/uthash.h"
 
-#define MAX_CITEMS 3192
+/* use uthash */
 
-typedef struct LRUCache {
-    int val;
-    bool valid;
-    struct LRUCache *prev;
-    struct LRUCache *next;
-} LRUCache;
-
-struct cdata {
-    int capacity;
-    int size;
-    struct LRUCache *cache;
-    struct LRUCache *head;
-    struct LRUCache *tail;
+struct Node {
+    int key;
+    int value;
+    struct Node *next;
+    struct Node *prev;
+    UT_hash_handle hh;
 };
 
-void *alloc_cache(size_t capacity){
-    struct cdata *cdata = calloc(1, sizeof *cdata);
-    cdata->cache = calloc(1, sizeof(struct LRUCache [MAX_CITEMS]));
-    cdata->capacity = capacity;
-    return cdata;
+typedef struct {
+    int size;
+    int capacity;
+    struct Node *head;
+    struct Node *tail;
+    struct Node *hash;
+} LRUCache;
+
+// hash operations
+// add, find, delete
+struct Node *addHashNode(LRUCache *cache, int key, int value)
+{
+    struct Node *n;
+    HASH_FIND_INT(cache->hash, &key, n);
+
+    if (n==NULL) {
+        n = (struct Node*) malloc(sizeof(struct Node));
+        n->key = key;
+        HASH_ADD_INT(cache->hash, key, n);
+    }
+
+    n->value = value;
+    return n;
 }
 
-void dealloc_cache(void *obj){
-    free(((struct cdata *)obj)->cache);
+struct Node *findHashNode(LRUCache *cache, int key)
+{
+    struct Node *n;
+    HASH_FIND_INT(cache->hash, &key, n);
+    return n;
+}
+
+void deleteHashNode(LRUCache *cache, struct Node *n)
+{
+    HASH_DEL(cache->hash, n);
+}
+
+void deleteAllHashNodes(LRUCache *cache)
+{
+    struct Node *current, *temp;
+
+    HASH_ITER(hh, cache->hash, current, temp) {
+        HASH_DEL(cache->hash, current);
+        free(current);
+    }
+}
+
+// dll operations
+// add, remove, moveToHead
+void addNode(LRUCache *cache, struct Node *node)
+{
+    node->prev = cache->head;
+    node->next = cache->head->next;
+
+    cache->head->next->prev = node;
+    cache->head->next = node;
+}
+
+void removeNode(LRUCache *cache, struct Node *node)
+{
+    struct Node *prev = node->prev;
+    struct Node *next = node->next;
+
+    prev->next = next;
+    next->prev = prev;
+}
+
+void moveNodeToHead(LRUCache *cache, struct Node *node)
+{
+    removeNode(cache, node);
+    addNode(cache, node);
+}
+
+struct Node *popTail(LRUCache *cache)
+{
+    struct Node *res = cache->tail->prev;
+    removeNode(cache, res);
+    return res;
+}
+
+LRUCache* lRUCacheCreate(int capacity) {
+    LRUCache *cache = (LRUCache *) malloc(sizeof(LRUCache));
+    cache->size = 0;
+    cache->capacity = capacity;
+    cache->hash = NULL;
+    cache->head = (struct Node *)malloc(sizeof(struct Node));
+    cache->tail = (struct Node *)malloc(sizeof(struct Node));
+
+    // init the sentinel nodes
+    cache->head->prev = NULL;
+    cache->head->next = cache->tail;
+    cache->tail->next = NULL;
+    cache->tail->prev = cache->head;
+
+    return cache;
+}
+
+int lRUCacheGet(LRUCache* obj, int key) {
+    struct Node *n = findHashNode(obj, key);
+
+    if (n == NULL)
+        return -1;
+
+    moveNodeToHead(obj, n);
+    return n->value;
+}
+
+void lRUCachePut(LRUCache* obj, int key, int value) {
+    struct Node *n = findHashNode(obj, key);
+
+    if (n == NULL) {
+        n = addHashNode(obj, key, value);
+        addNode(obj, n);
+        obj->size++;
+
+        if (obj->size > obj->capacity) {
+            n = popTail(obj);
+            deleteHashNode(obj, n);
+            obj->size--;
+        }
+    }
+    else {
+        n->value = value;
+        moveNodeToHead(obj, n);
+    }
+}
+
+void lRUCacheFree(LRUCache* obj) {
+    deleteAllHashNodes(obj);
+    free(obj->head);
+    free(obj->tail);
     free(obj);
 }
-
-void refresh_cache(struct LRUCache *item, struct cdata *cdata, bool front){
-    struct LRUCache **prev = &item->prev, **next = &item->next;
-    struct LRUCache **head = &cdata->head, **tail = &cdata->tail;
-    if (item->valid) { // Remove node
-        *prev ? (*prev)->next = *next : 0;
-        *next ? (*next)->prev = *prev : 0;
-    }
-    item == *tail ? *tail = *prev : 0;// Fix tail
-    item->valid = front;
-    if (front) { // Move front
-        *prev = NULL;
-        *next = cdata->head;
-        *head ? (*head)->prev = item : 0;
-        *head = item; // Fix head
-        !*tail ? *tail = *head : 0; // First entry
-    }
-}
-
-LRUCache* lRUCacheCreate(int capacity){
-    return alloc_cache(capacity);
-}
-
-int lRUCacheGet(LRUCache* obj, int key){
-    struct cdata *cdata = (void *)obj;
-    struct LRUCache *item = &cdata->cache[key];
-    if (!cdata->size || !item->valid)
-        return -1;
-    if (item == cdata->head)
-        return item->val; // Already at front
-    refresh_cache(item, cdata, true); // Move front
-    return item->val;
-}
-
-void lRUCachePut(LRUCache* obj, int key, int value){
-    struct cdata *cdata = (void *)obj;
-    struct LRUCache *item = &cdata->cache[key];
-    if (item == cdata->head)
-        return item->val = value, (void)0; // Already at front
-
-    if (!item->valid) {
-        if (cdata->size == cdata->capacity)
-            refresh_cache(cdata->tail, cdata, false); // Evict
-        else
-            cdata->size++;
-    }
-
-    refresh_cache(item, cdata, true); // Move/add front
-    item->val = value;
-}
-
-void lRUCacheFree(LRUCache* obj){
-    dealloc_cache(obj);
-}
-
-/**
- * Your LRUCache struct will be instantiated and called as such:
- * LRUCache* obj = lRUCacheCreate(capacity);
- * int param_1 = lRUCacheGet(obj, key);
-
- * lRUCachePut(obj, key, value);
-
- * lRUCacheFree(obj);
-*/

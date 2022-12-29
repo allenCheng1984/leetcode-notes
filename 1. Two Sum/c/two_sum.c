@@ -7,11 +7,11 @@ typedef struct {
 } hash_t;
 
 void hash_free(hash_t **head) {
-  hash_t *curr, *next;
+  hash_t *current, *temp;
 
-  HASH_ITER(hh, *head, curr, next) {
-    HASH_DEL(*head, curr);
-    free(curr);
+  HASH_ITER(hh, *head, current, temp) {
+    HASH_DEL(*head, current);
+    free(current);
   }
 }
 

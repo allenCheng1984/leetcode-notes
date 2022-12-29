@@ -27,10 +27,10 @@ void add(int key)
 
 void hash_free()
 {
-    element_t *curr, *next;
-    HASH_ITER(hh, head, curr, next){
-        HASH_DEL(head, curr);
-        free(curr);
+    element_t *current, *temp;
+    HASH_ITER(hh, head, current, temp){
+        HASH_DEL(head, current);
+        free(current);
     }
 }
 
