@@ -12,8 +12,28 @@ class Solution:
 
 # ----
 
+print("== Test start ==");
+
 nums = [2,7,11,15]
 target = 9
 
-test = Solution().twoSum(nums, target)
-print(test)
+case1 = Solution().twoSum(nums, target)
+assert(case1 == [0, 1])
+
+# --
+
+nums = [3,2,4]
+target = 6
+
+case2 = Solution().twoSum(nums, target)
+assert(case2 == [1, 2])
+
+# --
+
+nums = [3, 3]
+target = 6
+
+case3 = Solution().twoSum(nums, target)
+assert(case3 == [0, 1])
+
+print("== Test start ==");

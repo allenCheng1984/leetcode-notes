@@ -6,11 +6,11 @@ typedef struct {
   UT_hash_handle hh;
 } hash_t;
 
-void hash_free(hash_t **head) {
+void hash_free(hash_t *head) {
   hash_t *current, *temp;
 
-  HASH_ITER(hh, *head, current, temp) {
-    HASH_DEL(*head, current);
+  HASH_ITER(hh, head, current, temp) {
+    HASH_DEL(head, current);
     free(current);
   }
 }
@@ -34,7 +34,7 @@ int* twoSum(int* nums, int numsSize, int target, int* returnSize) {
     // Add the new number to the hash head if it doesn't exist already
     HASH_FIND_INT(head, &nums[i], element);
     if (!element) {
-      element = (struct hash_t *) malloc(sizeof(*element));
+      element = (hash_t *) malloc(sizeof(*element));
       element->key = nums[i];
       element->index = i;
 
@@ -42,7 +42,7 @@ int* twoSum(int* nums, int numsSize, int target, int* returnSize) {
     }
   }
 
-  hash_free(&head);
+  hash_free(head);
 
   *returnSize = 2;
   return result;
