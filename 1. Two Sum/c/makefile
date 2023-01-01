@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS=-g
+CFLAGS=-g -Wall # -Wextra -std=gnu11 -pedantic -v
 
 all: clean target
 

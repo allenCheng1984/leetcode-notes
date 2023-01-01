@@ -6,9 +6,9 @@
 int main()
 {
     printf("\n== Test start ==\n");
-
-    int *returnSize;
     int numsSize;
+    int *returnSize = (int *) malloc(sizeof(int));
+
     /*
         # Example 1:
         Input: nums = [2,7,11,15], target = 9
@@ -18,10 +18,9 @@ int main()
     numsSize = 4;
     int *nums1;
     nums1 = (int *) malloc(numsSize * sizeof(int));
-    nums1[0] = 2;
-    nums1[1] = 7;
-    nums1[2] = 11;
-    nums1[3] = 15;
+    int data1[] = {2, 7, 11, 15};
+    for (size_t i = 0;i < numsSize;i++)
+        nums1[i] = data1[i];
 
     int *case1 = twoSum(nums1, numsSize, 9, returnSize);
     assert(case1[0] == 0);
@@ -39,9 +38,9 @@ int main()
     numsSize = 3;
     int *nums2;
     nums2 = (int *) malloc(numsSize * sizeof(int));
-    nums2[0] = 3;
-    nums2[1] = 2;
-    nums2[2] = 4;
+    int data2[] = {3, 2, 4};
+    for (size_t i = 0;i < numsSize;i++)
+        nums2[i] = data2[i];
 
     int *case2 = twoSum(nums2, numsSize, 6, returnSize);
     assert(case2[0] == 1);
@@ -49,6 +48,7 @@ int main()
     assert(*returnSize == 2);
     free(nums2);
     *returnSize = 0;
+
 
     /*
         # Example 3:
@@ -58,8 +58,9 @@ int main()
     numsSize = 2;
     int *nums3;
     nums3 = (int *) malloc(numsSize * sizeof(int));
-    nums3[0] = 3;
-    nums3[1] = 3;
+    int data3[] = {3, 3};
+    for (size_t i = 0;i < numsSize;i++)
+        nums3[i] = data3[i];
 
     int *case3 = twoSum(nums3, numsSize, 6, returnSize);
     assert(case3[0] == 0);
