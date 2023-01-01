@@ -7,6 +7,7 @@
     "contains_duplicate.h": "c",
     "uthash.h": "c",
     "stdbool.h": "c",
-    "valid_anagram.h": "c"
+    "valid_anagram.h": "c",
+    "two_sum.h": "c"
   }
 }
